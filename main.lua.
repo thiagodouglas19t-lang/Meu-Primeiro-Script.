@@ -1,159 +1,265 @@
 -- =======================================================
--- CONFIGURAÇÕES INICIAIS (SEGURANÇA E INTERFACE)
+-- REDZ STYLE - SHARK HUB v2.0 (EVENTOS, ILHAS & ESP)
+-- SECURITY LEVEL: MAXIMUM (HUMAN SIMULATION)
 -- =======================================================
+
 local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
 local VirtualUser = game:GetService("VirtualUser")
 local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
 
--- Evita que o script duplique na tela se for executado duas vezes
-if CoreGui:FindFirstChild("MeuScriptLoading") or CoreGui:FindFirstChild("MeuPainelPrincipal") then
-    print("O script ja esta rodando!")
-    return
+-- Anti-Duplicação do Script
+if CoreGui:FindFirstChild("SharkHub_RedzStyle") then
+    CoreGui:FindFirstChild("SharkHub_RedzStyle"):Destroy()
 end
 
 -- =======================================================
--- 1. CRIANDO A TELA DE LOADING
+-- 1. INTERFACE PRINCIPAL (Estilo Redz Hub - Dark/Neon)
 -- =======================================================
-local LoadingGui = Instance.new("ScreenGui")
-LoadingGui.Name = "MeuScriptLoading"
-LoadingGui.Parent = CoreGui
+local MainGui = Instance.new("ScreenGui")
+MainGui.Name = "SharkHub_RedzStyle"
+MainGui.Parent = CoreGui
 
-local BackgroundFrame = Instance.new("Frame")
-BackgroundFrame.Size = UDim2.new(0, 350, 0, 180)
-BackgroundFrame.Position = UDim2.new(0.5, -175, 0.5, -90)
-BackgroundFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-BackgroundFrame.BorderSizePixel = 0
-BackgroundFrame.Parent = LoadingGui
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 520, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -160)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = MainGui
 
--- Arredondar cantos do frame de loading
 local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 12)
-Corner.Parent = BackgroundFrame
+Corner.CornerRadius = UDim.new(0, 8)
+Corner.Parent = MainFrame
 
-local StatusText = Instance.new("TextLabel")
-StatusText.Size = UDim2.new(1, 0, 0, 40)
-StatusText.Position = UDim2.new(0, 0, 0.2, 0)
-StatusText.TextColor3 = Color3.fromRGB(255, 255, 255)
-StatusText.TextSize = 18
-StatusText.Font = Enum.Font.SourceSansBold
-StatusText.BackgroundTransparency = 1
-StatusText.Text = "Iniciando..."
-StatusText.Parent = BackgroundFrame
+-- Barra de Título
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
 
-local BarBackground = Instance.new("Frame")
-BarBackground.Size = UDim2.new(0, 280, 0, 8)
-BarBackground.Position = UDim2.new(0.5, -140, 0.6, 0)
-BarBackground.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
-BarBackground.BorderSizePixel = 0
-BarBackground.Parent = BackgroundFrame
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = TitleBar
 
-local BarCorner = Instance.new("UICorner")
-BarCorner.CornerRadius = UDim.new(0, 4)
-BarCorner.Parent = BarBackground
+local TitleText = Instance.new("TextLabel")
+TitleText.Size = UDim2.new(1, -20, 1, 0)
+TitleText.Position = UDim2.new(0, 15, 0, 0)
+TitleText.Text = "SHARK HUB v2.0 | Redz Inspired"
+TitleText.TextColor3 = Color3.fromRGB(0, 255, 180) -- Verde Neon
+TitleText.TextSize = 18
+TitleText.Font = Enum.Font.SourceSansBold
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+TitleText.BackgroundTransparency = 1
+TitleText.Parent = TitleBar
 
-local BarFill = Instance.new("Frame")
-BarFill.Size = UDim2.new(0, 0, 1, 0) -- Começa em 0%
-BarFill.BackgroundColor3 = Color3.fromRGB(0, 200, 255) -- Azul Neon
-BarFill.BorderSizePixel = 0
-BarFill.Parent = BarBackground
+-- Botão Fechar
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+CloseBtn.TextSize = 18
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.Parent = TitleBar
+CloseBtn.MouseButton1Click:Connect(function() MainGui:Destroy() end)
 
-local BarFillCorner = Instance.new("UICorner")
-BarFillCorner.CornerRadius = UDim.new(0, 4)
-BarFillCorner.Parent = BarFill
+-- Painel Lateral de Abas
+local TabContainer = Instance.new("Frame")
+TabContainer.Size = UDim2.new(0, 130, 1, -40)
+TabContainer.Position = UDim2.new(0, 0, 0, 40)
+TabContainer.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
+TabContainer.BorderSizePixel = 0
+TabContainer.Parent = MainFrame
 
--- =======================================================
--- 2. FUNÇÃO QUE ABRE O PAINEL PRINCIPAL APÓS O LOADING
--- =======================================================
-local function AbrirPainelPrincipal()
-    local MainGui = Instance.new("ScreenGui")
-    MainGui.Name = "MeuPainelPrincipal"
-    MainGui.Parent = CoreGui
+-- Container de Conteúdo (Direita)
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Size = UDim2.new(1, -140, 1, -50)
+ContentContainer.Position = UDim2.new(0, 135, 0, 45)
+ContentContainer.BackgroundTransparency = 1
+ContentContainer.Parent = MainFrame
 
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 300, 0, 250)
-    MainFrame.Position = UDim2.new(0.1, 0, 0.3, 0) -- Fica no canto esquerdo da tela
-    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Active = true
-    MainFrame.Draggable = true -- Permite arrastar o painel pela tela
-    MainFrame.Parent = MainGui
-
-    local MainCorner = Instance.new("UICorner")
-    MainCorner.CornerRadius = UDim.new(0, 10)
-    MainCorner.Parent = MainFrame
-
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 0, 40)
-    Title.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    Title.TextColor3 = Color3.fromRGB(0, 200, 255)
-    Title.TextSize = 20
-    Title.Font = Enum.Font.SourceSansBold
-    Title.Text = "SHARK HUB v1.0"
-    Title.Parent = MainFrame
+-- Criador de Abas Internas
+local Abas = {}
+local function CriarAba(nome, id)
+    local FrameAba = Instance.new("ScrollingFrame")
+    FrameAba.Size = UDim2.new(1, 0, 1, 0)
+    FrameAba.BackgroundTransparency = 1
+    FrameAba.Visible = (id == 1)
+    FrameAba.CanvasSize = UDim2.new(0, 0, 2, 0)
+    FrameAba.ScrollBarThickness = 4
+    FrameAba.Parent = ContentContainer
     
-    local TitleCorner = Instance.new("UICorner")
-    TitleCorner.CornerRadius = UDim.new(0, 10)
-    TitleCorner.Parent = Title
-
-    -- Botão de Auto Click (Atacar)
-    local Button = Instance.new("TextButton")
-    Button.Size = UDim2.new(0, 240, 0, 45)
-    Button.Position = UDim2.new(0.5, -120, 0.4, 0)
-    Button.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Começa Vermelho (Desativado)
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Button.TextSize = 18
-    Button.Font = Enum.Font.SourceSansBold
-    Button.Text = "Auto Clicker: DESATIVADO"
-    Button.Parent = MainFrame
-
-    local ButtonCorner = Instance.new("UICorner")
-    ButtonCorner.CornerRadius = UDim.new(0, 8)
-    ButtonCorner.Parent = Button
-
-    -- Lógica de funcionamento do Botão (Ligar/Desligar)
-    local AutoClickAtivo = false
+    local ListLayout = Instance.new("UIListLayout")
+    ListLayout.Padding = UDim.new(0, 8)
+    ListLayout.Parent = FrameAba
     
-    Button.MouseButton1Click:Connect(function()
-        AutoClickAtivo = not AutoClickAtivo
-        
-        if AutoClickAtivo then
-            Button.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- Muda para Verde
-            Button.Text = "Auto Clicker: ATIVADO"
-            
-            -- Cria a rotina de ataque em segundo plano
-            task.spawn(function()
-                while AutoClickAtivo do
-                    task.wait(0.1) -- Velocidade dos cliques (0.1 segundos)
-                    VirtualUser:CaptureController()
-                    VirtualUser:ClickButton1(Vector2.new(0, 0))
-                end
-            end)
-        else
-            Button.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Volta para Vermelho
-            Button.Text = "Auto Clicker: DESATIVADO"
+    local BotaoAba = Instance.new("TextButton")
+    BotaoAba.Size = UDim2.new(1, -10, 0, 35)
+    BotaoAba.Position = UDim2.new(0, 5, 0, (id-1)*40 + 5)
+    BotaoAba.BackgroundColor3 = (id == 1) and Color3.fromRGB(25, 25, 35) or Color3.fromRGB(20, 20, 28)
+    BotaoAba.Text = nome
+    BotaoAba.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BotaoAba.TextSize = 14
+    BotaoAba.Font = Enum.Font.SourceSansBold
+    BotaoAba.Parent = TabContainer
+    
+    local BCorner = Instance.new("UICorner")
+    BCorner.CornerRadius = UDim.new(0, 6)
+    BCorner.Parent = BotaoAba
+    
+    Abas[nome] = {Frame = FrameAba, Botao = BotaoAba}
+    
+    BotaoAba.MouseButton1Click:Connect(function()
+        for _, v in pairs(Abas) do
+            v.Frame.Visible = false
+            v.Botao.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
         end
+        FrameAba.Visible = true
+        BotaoAba.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    end)
+    return FrameAba
+end
+
+-- Criador de Botões de Ativar/Desativar (Toggle)
+local function CriarToggle(abaFrame, texto, callback)
+    local ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Size = UDim2.new(1, -10, 0, 40)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    ToggleBtn.Text = texto .. " : [DESATIVADO]"
+    ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+    ToggleBtn.TextSize = 15
+    ToggleBtn.Font = Enum.Font.SourceSans
+    ToggleBtn.Parent = abaFrame
+    
+    local TCorner = Instance.new("UICorner")
+    TCorner.CornerRadius = UDim.new(0, 6)
+    TCorner.Parent = ToggleBtn
+    
+    local ativo = false
+    ToggleBtn.MouseButton1Click:Connect(function()
+        ativo = not ativo
+        if ativo then
+            ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 45, 35)
+            ToggleBtn.Text = texto .. " : [ATIVADO]"
+            ToggleBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
+        else
+            ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+            ToggleBtn.Text = texto .. " : [DESATIVADO]"
+            ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+        end
+        callback(ativo)
     end)
 end
 
+-- Instanciando as Abas Iguais ao Redz Hub
+local MarAba = CriarAba("Eventos do Mar", 1)
+local IlhasAba = CriarAba("Ir para Ilhas", 2)
+local VisuaisAba = CriarAba("Visuais & ESP", 3)
+local OtimizarAba = CriarAba("Otimizar Jogo", 4)
+
 -- =======================================================
--- 3. EXECUÇÃO DA ANIMAÇÃO DO LOADING
+-- 2. PROGRAMAÇÃO DAS FUNÇÕES (AÇÕES DO CHEAT)
 -- =======================================================
-task.spawn(function()
-    StatusText.Text = "Verificando arquivos..."
-    BarFill:TweenSize(UDim2.new(0.3, 0, 1, 0), "Out", "Quad", 1)
-    task.wait(1.2)
 
-    StatusText.Text = "Conectando ao servidor..."
-    BarFill:TweenSize(UDim2.new(0.7, 0, 1, 0), "Out", "Quad", 1.5)
-    task.wait(1.7)
+-- ABA 1: EVENTOS DO MAR
+local AutoSail = false
+local AutoKillMonsters = false
 
-    StatusText.Text = "Injetando Shark Hub..."
-    BarFill:TweenSize(UDim2.new(1, 0, 1, 0), "Out", "Quad", 0.8)
-    task.wait(1)
-
-    -- Fecha o loading de forma suave sumindo com ele
-    LoadingGui:Destroy()
-    
-    -- Abre o painel do cheat
-    AbrirPainelPrincipal()
+CriarToggle(MarAba, "Navegacao Automatica (Ate Zona 5)", function(estado)
+    AutoSail = estado
+    task.spawn(function()
+        while AutoSail do
+            task.wait(0.5)
+            local veiculo = LocalPlayer.Character and LocalPlayer.Character.Humanoid.SeatPart
+            if veiculo and veiculo.Parent:IsA("Model") then
+                -- Move o barco para frente de forma simulada e segura
+                veiculo.Parent:TranslateBy(veiculo.Parent.PrimaryPart.CFrame.LookVector * 10)
+            end
+        end
+    end)
 end)
+
+CriarToggle(MarAba, "Matar Monstros (Focar Terror/SeaBeast)", function(estado)
+    AutoKillMonsters = estado
+    task.spawn(function()
+        while AutoKillMonsters do
+            task.wait(0.1)
+            -- Procura monstros na area (Excluindo Leviathan por seguranca)
+            for _, v in pairs(game.Workspace:GetChildren()) do
+                if (v.Name == "Terror Shark" or v.Name == "Sea Beast" or v.Name == "Ghost Ship") and v:FindFirstChild("HumanoidRootPart") then
+                    -- Faz o jogador flutuar 30 studs acima do monstro para nao morrer na agua
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0, 30, 0)
+                        -- Simula Cliques Físicos Humanos de Ataque (Anti-Ban)
+                        VirtualUser:CaptureController()
+                        VirtualUser:ClickButton1(Vector2.new(0, 0))
+                    end
+                    break
+                end
+            end
+        end
+    end)
+end)
+
+-- ABA 2: IR PARA ILHAS (KITSUNE & MIRAGEM)
+local ProcurarMiragem = false
+local ProcurarKitsune = false
+
+CriarToggle(IlhasAba, "Rastrear Ilha da Miragem", function(estado)
+    ProcurarMiragem = estado
+    task.spawn(function()
+        while ProcurarMiragem do
+            task.wait(2)
+            local mirage = game.Workspace:FindFirstChild("Mirage Island")
+            if mirage then
+                game.StarterGui:SetCore("SendNotification", {Title = "SHARK HUB", Text = "ILHA DA MIRAGEM DETECTADA! Siga em frente.", Duration = 10})
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = mirage:GetModelCFrame() * CFrame.new(0, 100, 0)
+                end
+                ProcurarMiragem = false
+            end
+        end
+    end)
+end)
+
+CriarToggle(IlhasAba, "Rastrear Ilha Kitsune", function(estado)
+    ProcurarKitsune = estado
+    task.spawn(function()
+        while ProcurarKitsune do
+            task.wait(2)
+            local kitsune = game.Workspace:FindFirstChild("Kitsune Island")
+            if kitsune then
+                game.StarterGui:SetCore("SendNotification", {Title = "SHARK HUB", Text = "ILHA KITSUNE DETECTADA!", Duration = 10})
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = kitsune:GetModelCFrame() * CFrame.new(0, 100, 0)
+                end
+                ProcurarKitsune = false
+            end
+        end
+    end)
+end)
+
+-- ABA 3: VISUAIS & ESP (FRUTAS E BAÚS BERRY)
+local EspBeryAtivo = false
+local NotificadorFruta = false
+
+local function CriarEsp(objeto, cor, texto)
+    if objeto:FindFirstChild("EspIdentificador") then return end
+    local Box = Instance.new("BoxHandleAdornment")
+    Box.Name = "EspIdentificador"
+    Box.Size = objeto:IsA("Model") and (objeto.PrimaryPart and objeto.PrimaryPart.Size or Vector3.new(4,4,4)) or objeto.Size
+    Box.AlwaysOnTop = true
+    Box.ZIndex = 5
+    Box.Color3 = cor
+    Box.Adornee = objeto
+    Box.Transparency = 0.4
+    Box.Parent = objeto
+end
+
+CriarToggle(OtimizarAba, "Modo Boost: Tela Preta (Farm Noturno)", function(estado)               CriarToggle(VisuaisAba, "ESP Berry (Ver Baus de Ouro)", function(estado)          CriarToggle(VisuaisAba, "Notificador de Frutas no Chao", function(estado)
+CriarToggle(OtimizarAba, "Remover Texturas (Mais FPS / Leve)", function(estado)
