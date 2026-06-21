@@ -1,0 +1,159 @@
+-- =======================================================
+-- CONFIGURAÇÕES INICIAIS (SEGURANÇA E INTERFACE)
+-- =======================================================
+local CoreGui = game:GetService("CoreGui")
+local VirtualUser = game:GetService("VirtualUser")
+local TweenService = game:GetService("TweenService")
+
+-- Evita que o script duplique na tela se for executado duas vezes
+if CoreGui:FindFirstChild("MeuScriptLoading") or CoreGui:FindFirstChild("MeuPainelPrincipal") then
+    print("O script ja esta rodando!")
+    return
+end
+
+-- =======================================================
+-- 1. CRIANDO A TELA DE LOADING
+-- =======================================================
+local LoadingGui = Instance.new("ScreenGui")
+LoadingGui.Name = "MeuScriptLoading"
+LoadingGui.Parent = CoreGui
+
+local BackgroundFrame = Instance.new("Frame")
+BackgroundFrame.Size = UDim2.new(0, 350, 0, 180)
+BackgroundFrame.Position = UDim2.new(0.5, -175, 0.5, -90)
+BackgroundFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+BackgroundFrame.BorderSizePixel = 0
+BackgroundFrame.Parent = LoadingGui
+
+-- Arredondar cantos do frame de loading
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 12)
+Corner.Parent = BackgroundFrame
+
+local StatusText = Instance.new("TextLabel")
+StatusText.Size = UDim2.new(1, 0, 0, 40)
+StatusText.Position = UDim2.new(0, 0, 0.2, 0)
+StatusText.TextColor3 = Color3.fromRGB(255, 255, 255)
+StatusText.TextSize = 18
+StatusText.Font = Enum.Font.SourceSansBold
+StatusText.BackgroundTransparency = 1
+StatusText.Text = "Iniciando..."
+StatusText.Parent = BackgroundFrame
+
+local BarBackground = Instance.new("Frame")
+BarBackground.Size = UDim2.new(0, 280, 0, 8)
+BarBackground.Position = UDim2.new(0.5, -140, 0.6, 0)
+BarBackground.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+BarBackground.BorderSizePixel = 0
+BarBackground.Parent = BackgroundFrame
+
+local BarCorner = Instance.new("UICorner")
+BarCorner.CornerRadius = UDim.new(0, 4)
+BarCorner.Parent = BarBackground
+
+local BarFill = Instance.new("Frame")
+BarFill.Size = UDim2.new(0, 0, 1, 0) -- Começa em 0%
+BarFill.BackgroundColor3 = Color3.fromRGB(0, 200, 255) -- Azul Neon
+BarFill.BorderSizePixel = 0
+BarFill.Parent = BarBackground
+
+local BarFillCorner = Instance.new("UICorner")
+BarFillCorner.CornerRadius = UDim.new(0, 4)
+BarFillCorner.Parent = BarFill
+
+-- =======================================================
+-- 2. FUNÇÃO QUE ABRE O PAINEL PRINCIPAL APÓS O LOADING
+-- =======================================================
+local function AbrirPainelPrincipal()
+    local MainGui = Instance.new("ScreenGui")
+    MainGui.Name = "MeuPainelPrincipal"
+    MainGui.Parent = CoreGui
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 300, 0, 250)
+    MainFrame.Position = UDim2.new(0.1, 0, 0.3, 0) -- Fica no canto esquerdo da tela
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true -- Permite arrastar o painel pela tela
+    MainFrame.Parent = MainGui
+
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 10)
+    MainCorner.Parent = MainFrame
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    Title.TextColor3 = Color3.fromRGB(0, 200, 255)
+    Title.TextSize = 20
+    Title.Font = Enum.Font.SourceSansBold
+    Title.Text = "SHARK HUB v1.0"
+    Title.Parent = MainFrame
+    
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 10)
+    TitleCorner.Parent = Title
+
+    -- Botão de Auto Click (Atacar)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0, 240, 0, 45)
+    Button.Position = UDim2.new(0.5, -120, 0.4, 0)
+    Button.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Começa Vermelho (Desativado)
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 18
+    Button.Font = Enum.Font.SourceSansBold
+    Button.Text = "Auto Clicker: DESATIVADO"
+    Button.Parent = MainFrame
+
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = Button
+
+    -- Lógica de funcionamento do Botão (Ligar/Desligar)
+    local AutoClickAtivo = false
+    
+    Button.MouseButton1Click:Connect(function()
+        AutoClickAtivo = not AutoClickAtivo
+        
+        if AutoClickAtivo then
+            Button.BackgroundColor3 = Color3.fromRGB(50, 200, 50) -- Muda para Verde
+            Button.Text = "Auto Clicker: ATIVADO"
+            
+            -- Cria a rotina de ataque em segundo plano
+            task.spawn(function()
+                while AutoClickAtivo do
+                    task.wait(0.1) -- Velocidade dos cliques (0.1 segundos)
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton1(Vector2.new(0, 0))
+                end
+            end)
+        else
+            Button.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Volta para Vermelho
+            Button.Text = "Auto Clicker: DESATIVADO"
+        end
+    end)
+end
+
+-- =======================================================
+-- 3. EXECUÇÃO DA ANIMAÇÃO DO LOADING
+-- =======================================================
+task.spawn(function()
+    StatusText.Text = "Verificando arquivos..."
+    BarFill:TweenSize(UDim2.new(0.3, 0, 1, 0), "Out", "Quad", 1)
+    task.wait(1.2)
+
+    StatusText.Text = "Conectando ao servidor..."
+    BarFill:TweenSize(UDim2.new(0.7, 0, 1, 0), "Out", "Quad", 1.5)
+    task.wait(1.7)
+
+    StatusText.Text = "Injetando Shark Hub..."
+    BarFill:TweenSize(UDim2.new(1, 0, 1, 0), "Out", "Quad", 0.8)
+    task.wait(1)
+
+    -- Fecha o loading de forma suave sumindo com ele
+    LoadingGui:Destroy()
+    
+    -- Abre o painel do cheat
+    AbrirPainelPrincipal()
+end)
