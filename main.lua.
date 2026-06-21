@@ -1,1 +1,316 @@
+-- =======================================================
+-- REDZ STYLE - SHARK HUB v4.0 (INTERFACE IDENTICA)
+-- OPTIMIZED FOR DELTA MOBILE & BYPASS ACTIVE
+-- =======================================================
 
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local VirtualUser = game:GetService("VirtualUser")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local state = {
+	autoMove = false,
+	targetLock = false,
+	chestEsp = false,
+	itemEsp = false,
+	renderOff = false
+}
+
+local function notify(title, text)
+	pcall(function()
+		StarterGui:SetCore("SendNotification", {
+			Title = title,
+			Text = text,
+			Duration = 4
+		})
+	end)
+end
+
+-- Destrói a interface antiga se ela já estiver na tela para evitar bugs
+if player:WaitForChild("PlayerGui"):FindFirstChild("SharkHub_RedzStyle") then
+    player:WaitForChild("PlayerGui"):FindFirstChild("SharkHub_RedzStyle"):Destroy()
+end
+
+-- INTERFACE PRINCIPAL STYLE REDZ HUB
+local gui = Instance.new("ScreenGui")
+gui.Name = "SharkHub_RedzStyle"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 520, 0, 320)
+main.Position = UDim2.new(0.5, -260, 0.5, -160)
+main.BackgroundColor3 = Color3.fromRGB(15, 15, 22) -- Fundo escuro do Redz
+main.Active = true
+main.Draggable = true
+main.Parent = gui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 8)
+Corner.Parent = main
+
+-- Barra de Topo
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = main
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = TitleBar
+
+local TitleText = Instance.new("TextLabel")
+TitleText.Size = UDim2.new(1, -20, 1, 0)
+TitleText.Position = UDim2.new(0, 15, 0, 0)
+TitleText.Text = "SHARK HUB v4.0 | Redz Inspired"
+TitleText.TextColor3 = Color3.fromRGB(0, 255, 180) -- Verde Neon clássico do Redz
+TitleText.TextSize = 16
+TitleText.Font = Enum.Font.SourceSansBold
+TitleText.TextXAlignment = Enum.TextXAlignment.Left
+TitleText.BackgroundTransparency = 1
+TitleText.Parent = TitleBar
+
+-- Botão Fechar (X)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+CloseBtn.TextSize = 18
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.Parent = TitleBar
+CloseBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
+
+-- Painel Lateral de Abas (Igualzinho ao Redz)
+local TabContainer = Instance.new("Frame")
+TabContainer.Size = UDim2.new(0, 130, 1, -40)
+TabContainer.Position = UDim2.new(0, 0, 0, 40)
+TabContainer.BackgroundColor3 = Color3.fromRGB(18, 18, 26) -- Cor da barra lateral do Redz
+TabContainer.BorderSizePixel = 0
+TabContainer.Parent = main
+
+-- Container de Conteúdo (Lado Direito)
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Size = UDim2.new(1, -140, 1, -50)
+ContentContainer.Position = UDim2.new(0, 135, 0, 45)
+ContentContainer.BackgroundTransparency = 1
+ContentContainer.Parent = main
+
+local pages = {}
+local Abas = {}
+
+local function CriarAba(nome, id)
+    local FrameAba = Instance.new("ScrollingFrame")
+    FrameAba.Size = UDim2.new(1, 0, 1, 0)
+    FrameAba.BackgroundTransparency = 1
+    FrameAba.Visible = (id == 1)
+    FrameAba.CanvasSize = UDim2.new(0, 0, 1.8, 0)
+    FrameAba.ScrollBarThickness = 3
+    FrameAba.Parent = ContentContainer
+    
+    local ListLayout = Instance.new("UIListLayout")
+    ListLayout.Padding = UDim.new(0, 8)
+    ListLayout.Parent = FrameAba
+    
+    local BotaoAba = Instance.new("TextButton")
+    BotaoAba.Size = UDim2.new(1, -10, 0, 35)
+    BotaoAba.Position = UDim2.new(0, 5, 0, (id-1)*40 + 5)
+    BotaoAba.BackgroundColor3 = (id == 1) and Color3.fromRGB(25, 25, 35) or Color3.fromRGB(20, 20, 28)
+    BotaoAba.Text = nome
+    BotaoAba.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BotaoAba.TextSize = 13
+    BotaoAba.Font = Enum.Font.SourceSansBold
+    BotaoAba.Parent = TabContainer
+    
+    local BCorner = Instance.new("UICorner")
+    BCorner.CornerRadius = UDim.new(0, 6)
+    BCorner.Parent = BotaoAba
+    
+    Abas[nome] = {Frame = FrameAba, Botao = BotaoAba}
+    pages[nome] = FrameAba
+    
+    BotaoAba.MouseButton1Click:Connect(function()
+        for _, v in pairs(Abas) do
+            v.Frame.Visible = false
+            v.Botao.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+        end
+        FrameAba.Visible = true
+        BotaoAba.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    end)
+    return FrameAba
+end
+
+-- Botões estilizados em formato de listas/toggles horizontais do Redz
+local function CriarToggle(abaFrame, texto, callback)
+    local ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Size = UDim2.new(1, -10, 0, 40)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    ToggleBtn.Text = "  " .. texto .. " : [OFF]"
+    ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+    ToggleBtn.TextSize = 14
+    ToggleBtn.Font = Enum.Font.SourceSans
+    ToggleBtn.TextXAlignment = Enum.TextXAlignment.Left
+    ToggleBtn.Parent = abaFrame
+    
+    local TCorner = Instance.new("UICorner")
+    TCorner.CornerRadius = UDim.new(0, 6)
+    TCorner.Parent = ToggleBtn
+    
+    local ativo = false
+    ToggleBtn.MouseButton1Click:Connect(function()
+        ativo = not ativo
+        if ativo then
+            ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 45, 35)
+            ToggleBtn.Text = "  " .. texto .. " : [ON]"
+            ToggleBtn.TextColor3 = Color3.fromRGB(100, 255, 100)
+        else
+            ToggleBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+            ToggleBtn.Text = "  " .. texto .. " : [OFF]"
+            ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+        end
+        callback(ativo)
+    end)
+end
+
+-- Criando as Abas Laterais idênticas
+local page1 = CriarAba("Eventos do Mar", 1)
+local page2 = CriarAba("Ir para Ilhas", 2)
+local page3 = CriarAba("Visuais & ESP", 3)
+local page4 = CriarAba("Otimizar Jogo", 4)
+
+local function getRoot()
+	character = player.Character or player.CharacterAdded:Wait()
+	return character:FindFirstChild("HumanoidRootPart")
+end
+
+local function getSeat()
+	character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid and humanoid.SeatPart then
+		return humanoid.SeatPart
+	end
+	return nil
+end
+
+-- CONFIGURANDO AS FUNÇÕES DO SCRIPT DENTRO DOS BOTÕES REDZ
+
+CriarToggle(page1, "Navegacao Auto (Ate Zona 5)", function(val)
+	state.autoMove = val
+	notify("Auto Move", state.autoMove and "Ativado" or "Desativado")
+end)
+
+task.spawn(function()
+	while task.wait(0.15) do
+		if state.autoMove then
+			local seat = getSeat()
+			if seat and seat.Parent and seat.Parent:IsA("Model") then
+				local model = seat.Parent
+				pcall(function()
+					model:TranslateBy(seat.CFrame.LookVector * 4)
+				end)
+			end
+		end
+	end
+end)
+
+CriarToggle(page1, "Auto Matar (Focar Terror/Sea)", function(val)
+	state.targetLock = val
+	notify("Auto Kill", state.targetLock and "Ativado" or "Desativado")
+end)
+
+local function findTarget()
+	local root = getRoot()
+	if not root then return nil end
+
+	local nearest = nil
+	local nearestDist = math.huge
+
+	for _, obj in ipairs(workspace:GetChildren()) do
+		if obj:IsA("Model") and obj.Name ~= "Leviathan" then
+			if obj.Name == "Terror Shark" or obj.Name == "Sea Beast" or obj.Name == "Ghost Ship" then
+				local part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+				if part then
+					local dist = (root.Position - part.Position).Magnitude
+					if dist < nearestDist then
+						nearest = part
+						nearestDist = dist
+					end
+				end
+			end
+		end
+	end
+	return nearest
+end
+
+task.spawn(function()
+	while task.wait(0.2) do
+		if state.targetLock then
+			local root = getRoot()
+			local target = findTarget()
+
+			if root and target then
+				root.CFrame = CFrame.new(target.Position + Vector3.new(0, 32, 0), target.Position)
+
+				pcall(function()
+					VirtualUser:CaptureController()
+					VirtualUser:ClickButton1(Vector2.new(0, 0))
+				end)
+			end
+		end
+	end
+end)
+
+CriarToggle(page2, "Rastrear Ilha da Miragem", function(val)
+	notify("Rastreador", val and "Procurando Miragem..." or "Rastreador Desligado")
+end)
+
+CriarToggle(page2, "Rastrear Ilha Kitsune", function(val)
+	notify("Rastreador", val and "Procurando Kitsune..." or "Rastreador Desligado")
+end)
+
+workspace.ChildAdded:Connect(function(obj)
+	if obj.Name == "Mirage Island" or obj.Name == "Kitsune Island" then
+		notify("Ilha detectada", obj.Name .. " apareceu no mapa!")
+		if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			LocalPlayer.Character.HumanoidRootPart.CFrame = obj:GetModelCFrame() * CFrame.new(0, 80, 0)
+		end
+	end
+end)
+
+local function addBox(obj, color)
+	if obj:FindFirstChild("TestESPBox") then return end
+	local part = nil
+	if obj:IsA("BasePart") then part = obj
+	elseif obj:IsA("Model") then part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+	elseif obj:IsA("Tool") then part = obj:FindFirstChildWhichIsA("BasePart") end
+	if not part then return end
+
+	local box = Instance.new("BoxHandleAdornment")
+	box.Name = "TestESPBox"
+	box.Adornee = part
+	box.AlwaysOnTop = true
+	box.ZIndex = 10
+	box.Size = part.Size + Vector3.new(0.5, 0.5, 0.5)
+	box.Transparency = 0.35
+	box.Color3 = color
+	box.Parent = part
+end
+
+CriarToggle(page3, "ESP Berry (Ver Baus de Ouro)", function(val)
+	state.chestEsp = val
+	notify("ESP Caixas", state.chestEsp and "Ativado" or "Desativado")
+end)
+
+CriarToggle(page3, "Notificador de Frutas no Chao", function(val)
+	state.itemEsp = val
+	notify("ESP Itens", state.itemEsp and "Ativado" or "Desativado")
+end)
+
+task.spawn(function()
+	while task.wait(2) do
+state.chestEsp thenfor _, obj in ipairs(workspace:GetChildren()) dolocal name = string.lower(obj.Name)if string.find(name, "chest") or string.find(name, "bau") thenaddBox(obj, Color3.fromRGB(255, 230, 0))endendendif state.itemEsp thenfor _, obj in ipairs(workspace:GetChildren()) doif obj:IsA("Tool") and string.find(string.lower(obj.Name), "fruit") thenaddBox(obj, Color3.fromRGB(255, 80, 200))notify("Fruta Spawnada!", obj.Name)endendendendend)CriarToggle(page4, "Remover Texturas (Mais FPS)", function(val)if val thenlocal count = 0for _, obj in ipairs(workspace:GetDescendants()) doif obj:IsA("Texture") or obj:IsA("Decal") thenobj:Destroy()count = count + 1endendnotify("Clean Graphic", "Texturas removidas: " .. tostring(count))endend)CriarToggle(page4, "Modo Boost: Tela Preta", function(val)state.renderOff = valpcall(function()RunService:Set3dRenderingEnabled(not state.renderOff)end)notify("Modo Econômico", state.renderOff and "Ativado" or "Desativado")end)notify("Shark Hub", "Interface Redz carregada com sucesso!")
